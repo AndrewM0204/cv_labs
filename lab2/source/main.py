@@ -1,3 +1,4 @@
+from .config import DEFAULT_RATIO
 import argparse
 import time
 
@@ -8,73 +9,13 @@ from . import config, drawing, geometry, lk, matching, video_io
 
 
 def parse_args():
-    parser = argparse.ArgumentParser(
-        description="Отслеживание плоского объекта по ключевым точкам"
-    )
-
+    parser = argparse.ArgumentParser(description="Отслеживание плоского объекта по ключевым точкам")
     parser.add_argument("video", help="путь к видеофайлу")
-
     parser.add_argument(
-        "--template",
-        default=None,
-        help="путь к изображению объекта; если не задан — первый кадр видео",
+        "--output", 
+        default=None, 
+        help="путь к файлу для сохранения видео с результатом трекинга (например, result.mp4)"
     )
-
-    parser.add_argument(
-        "--roi",
-        action="store_true",
-        help="выделить объект мышкой на первом кадре/шаблоне",
-    )
-
-    parser.add_argument(
-        "--min-matches",
-        type=int,
-        default=config.DEFAULT_MIN_MATCHES,
-    )
-
-    parser.add_argument(
-        "--ratio",
-        type=float,
-        default=config.DEFAULT_RATIO,
-    )
-
-    parser.add_argument(
-        "--pyramid",
-        type=float,
-        nargs="+",
-        default=list(config.DEFAULT_PYRAMID),
-    )
-
-    parser.add_argument(
-        "--no-lk",
-        action="store_true",
-        help="отключить LK (только SIFT)",
-    )
-
-    parser.add_argument(
-        "--no-throttle",
-        action="store_true",
-        help="не ограничивать скорость воспроизведения",
-    )
-
-    parser.add_argument(
-        "--no-show-kp",
-        action="store_true",
-        help="не отображать ключевые точки",
-    )
-
-    parser.add_argument(
-        "--output",
-        default=None,
-        help="путь к файлу для сохранения видео с трекингом",
-    )
-
-    parser.add_argument(
-        "--fourcc",
-        default=None,
-        help="fourcc для сохранения видео, например: mp4v, MJPG",
-    )
-
     return parser.parse_args()
 
 
@@ -93,36 +34,12 @@ def main():
     if not ret:
         return
 
-    if args.template:
-        template = cv2.imread(args.template)
-        if template is None:
-            return
-        initial_box = None
-    else:
-        template = first_frame
-        H0, W0 = first_frame.shape[:2]
-        initial_box = np.float32([[0, 0], [W0, 0], [W0, H0], [0, H0]])
-
-    if args.roi:
-        template, roi = drawing.select_template(template)
-
-        if not args.template and roi is not None:
-            x, y, w, h = roi
-            initial_box = np.float32(
-                [
-                    [x, y],
-                    [x + w, y],
-                    [x + w, y + h],
-                    [x, y + h],
-                ]
-            )
+    template = first_frame
+    H0, W0 = first_frame.shape[:2]
+    initial_box = np.float32([[0, 0], [W0, 0], [W0, H0], [0, H0]])
 
     gray_ref = cv2.cvtColor(template, cv2.COLOR_BGR2GRAY)
     h_ref, w_ref = gray_ref.shape[:2]
-
-    if h_ref == 0 or w_ref == 0:
-        return
-
     template_size = (w_ref, h_ref)
     template_aspect = w_ref / float(h_ref)
 
@@ -136,7 +53,7 @@ def main():
     ).reshape(-1, 1, 2)
 
     sift = matching.make_sift()
-    pyramid = matching.build_ref_pyramid(gray_ref, sift, args.pyramid)
+    pyramid = matching.build_ref_pyramid(gray_ref, sift, list(config.DEFAULT_PYRAMID))
 
     if not pyramid:
         return
@@ -146,29 +63,10 @@ def main():
         {"checks": 64},
     )
 
-    use_lk = not args.no_lk
-    show_kp = not args.no_show_kp
+    use_lk = True
+    show_kp = True
 
     gray_first = cv2.cvtColor(first_frame, cv2.COLOR_BGR2GRAY)
-
-    if initial_box is None:
-        c, s, r, pts, mask = matching.detect_full_frame(
-            pyramid,
-            gray_first,
-            sift,
-            flann,
-            args.ratio,
-            args.min_matches,
-            template_aspect,
-            template_size,
-            last_size=0,
-            lost=0,
-        )
-
-        if c is None:
-            return
-
-        initial_box = c.reshape(-1, 2)
 
     M_current, _ = cv2.findHomography(
         ref_corners,
@@ -195,7 +93,7 @@ def main():
 
     cv2.namedWindow(config.WINDOW_NAME, cv2.WINDOW_NORMAL)
 
-    throttle = not args.no_throttle
+    throttle = True
     start_time = time.time()
     frame_idx = 0
 
@@ -320,8 +218,8 @@ def main():
                     last_corners,
                     sift,
                     flann,
-                    args.ratio,
-                    args.min_matches,
+                    config.DEFAULT_RATIO,
+                    config.DEFAULT_MIN_MATCHES,
                     lost,
                     template_aspect,
                     template_size,
@@ -342,8 +240,8 @@ def main():
                         gray,
                         sift,
                         flann,
-                        args.ratio,
-                        args.min_matches,
+                        config.DEFAULT_RATIO,
+                        config.DEFAULT_MIN_MATCHES,
                         template_aspect,
                         template_size,
                         last_size=obj_size,
