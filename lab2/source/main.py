@@ -102,8 +102,7 @@ def main():
         writer = video_io.create_video_writer(
             args.output,
             fps,
-            (first_frame.shape[1], first_frame.shape[0]),
-            args.fourcc,
+            (first_frame.shape[1], first_frame.shape[0])
         )
 
     preview = first_frame.copy()

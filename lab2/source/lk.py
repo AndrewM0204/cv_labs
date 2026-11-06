@@ -18,7 +18,7 @@ def select_lk_points_for_ref(ref_entry, max_pts=config.MAX_LK_POINTS):
 
     if len(kp) > max_pts:
         responses = np.array([k.response for k in kp])
-        idx = np.argsort(-responses)[:max_pts]
+        idx = np.argpartition(-responses, max_pts)[:max_pts]
         pts = pts[idx]
 
     return pts
