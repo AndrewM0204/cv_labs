@@ -1,4 +1,3 @@
-from .config import DEFAULT_RATIO
 import argparse
 import time
 
