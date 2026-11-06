@@ -392,7 +392,7 @@ def main():
 
         # ---------- 5. Choose result ----------
         final = None
-        label = ""
+        label = "OBJECT"
         found = False
 
         draw_pts = None
@@ -421,7 +421,6 @@ def main():
             candidate_box = None
             candidate_count = 0
 
-            label = "SIFT"
             found = True
 
             draw_pts = sift_pts
@@ -432,11 +431,9 @@ def main():
             M_current = lk_M
 
             lost = 0
-            label = "LK"
             found = True
 
             draw_pts = lk_track_pts
-            draw_color = (255, 200, 0)
 
         else:
             lost += 1
