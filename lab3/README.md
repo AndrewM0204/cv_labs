@@ -30,9 +30,9 @@
 **Итоговая модель**: Exp3 с CosineAnnealingLR.
 
 #### Графики обучения
-![График обучения эксперимента 1](images\training_curves_base.png)
-![График обучения эксперимента 2](images\training_curves_exp2.png)
-![График обучения эксперимента 3](images\training_curves_exp3.png)
+![График обучения эксперимента 1](images/training_curves_base.png)
+![График обучения эксперимента 2](images/training_curves_exp2.png)
+![График обучения эксперимента 3](images/training_curves_exp3.png)
 
 #### Матрица ошибок и классификационный отчет
 ![Матрица ошибок](images/confusion_matrix.png)
